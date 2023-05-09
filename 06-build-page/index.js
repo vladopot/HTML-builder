@@ -4,26 +4,51 @@ let textTemplate = ``;
 let articles = ``;
 let footer = ``;
 let header = ``;
+let dirToCopy = "06-build-page/assets";
+let targetDir = "06-build-page/project-dist/assets";
+let project_dist = "06-build-page/project-dist";
+start();
+
+function start () {
+    if (fs.access(`${project_dist}`, () => {})) {
+        deleteFiles(targetDir);
+        deleteFiles(project_dist);
+    } 
+}
 
 fs.mkdir("06-build-page/project-dist", () => {
     fs.writeFile("06-build-page/project-dist/index.html", "", () => {})
 });
-
-fs.readdir("06-build-page/project-dist/assets", (err, f) => {
-    f.forEach(element => {
-        fs.unlink(`06-build-page/project-dist/assets/${element}`, () => {});
-    });
+fs.mkdir("06-build-page/project-dist/assets", () => {
+    copyingFile(dirToCopy, targetDir);
 });
-fs.rmdir("06-build-page/project-dist/assets", () => {});
-fs.mkdir("06-build-page/project-dist/assets", () => {});
 
-fs.readdir("06-build-page/assets", (err, data) => {
-    data.forEach(element => {
-        fs.copyFile(`06-build-page/assets/${element}`, `06-build-page/project-dist/assets/${element}`, err => {
-            if (err) throw err;
+
+
+function deleteFiles (dir) {
+    if (!fs.lstatSync(`${dir}`).isDirectory()) {
+        fs.unlink(`${dir}`, () => {});
+    } else {
+        fs.readdir(`${dir}`, (err, data) => {
+            data.forEach(element => {
+                deleteFiles(`${dir}/${element}`);
+            });
+        });
+    } 
+}
+
+function copyingFile (dirStart, dirEnd) {
+    fs.readdir(dirStart, (err, data) => {
+        data.forEach(element => {
+            if (!fs.lstatSync(`${dirStart}/${element}`).isDirectory()) {
+                fs.copyFile(`${dirStart}/${element}`, `${dirEnd}/${element}`, () => {});
+            } else {
+                fs.mkdir(`${dirEnd}/${element}`, () => {});
+                copyingFile(`${dirStart}/${element}`, `${dirEnd}/${element}`);
+            }
         });
     });
-});
+}
 
 fs.stat("06-build-page/project-dist/style.css", (err, data) => {
     if (!err) {
