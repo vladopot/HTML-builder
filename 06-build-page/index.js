@@ -4,29 +4,26 @@ let textTemplate = ``;
 let articles = ``;
 let footer = ``;
 let header = ``;
+let templateTags = [];
 let dirToCopy = "06-build-page/assets";
 let targetDir = "06-build-page/project-dist/assets";
 let project_dist = "06-build-page/project-dist";
 start();
 
 function start () {
-    if (fs.access(`${project_dist}`, () => {})) {
-        deleteFiles(targetDir);
-        deleteFiles(project_dist);
-    } 
+    fs.stat(`${project_dist}`, (err) => {
+        if (!err) {
+            deleteFiles(project_dist);
+            creator();
+        } else {
+            creator();
+            console.log('Нет');
+        }
+    })
 }
 
-fs.mkdir("06-build-page/project-dist", () => {
-    fs.writeFile("06-build-page/project-dist/index.html", "", () => {})
-});
-fs.mkdir("06-build-page/project-dist/assets", () => {
-    copyingFile(dirToCopy, targetDir);
-});
-
-
-
 function deleteFiles (dir) {
-    if (!fs.lstatSync(`${dir}`).isDirectory()) {
+    /*if (!fs.lstatSync(`${dir}`).isDirectory()) {
         fs.unlink(`${dir}`, () => {});
     } else {
         fs.readdir(`${dir}`, (err, data) => {
@@ -34,7 +31,25 @@ function deleteFiles (dir) {
                 deleteFiles(`${dir}/${element}`);
             });
         });
-    } 
+    }*/
+    fs.readdir(dir, (err, files) => {
+        files.forEach(e => {
+            fs.statSync(`${dir}/${e}`, (error, stats) => {
+                if (stats.isFile()) {
+                    console.log("Дир");
+                }
+            });
+        }); 
+    });
+}
+
+function creator () {
+    fs.mkdir("06-build-page/project-dist", () => {
+        fs.writeFile("06-build-page/project-dist/index.html", "", () => {})
+    });
+    fs.mkdir("06-build-page/project-dist/assets", () => {
+        copyingFile(dirToCopy, targetDir);
+    });
 }
 
 function copyingFile (dirStart, dirEnd) {
@@ -74,6 +89,7 @@ fs.readdir("06-build-page/styles", (err, file) => {
 
 fs.readFile("06-build-page/template.html", "utf8", (err, text) => {
     textTemplate = text;
+    templateTags = (text.match(/(?<=\{{2}).+?(?=\}{2})/g));
     collector();
 });
 
@@ -81,27 +97,18 @@ function collector () {
     fs.readdir("06-build-page/components", (err, data) => {
         data.forEach(e => {
             fs.readFile(`06-build-page/components/${e}`, "utf8", (err, t) => {
-                if (e === "articles.html") {
-                    articles = t;
-                } else if (e === "header.html") {
-                    header = t;
-                } else {
-                    footer = t;
-                }
-                collector2(e);
+                collector2(path.basename(e).split('.').slice(0, -1).join('.'), t);
             })
         });
         
     });
 }
 
-function collector2 (arg) {
-    if (arg === "articles.html") {
-        textTemplate = textTemplate.replace('{{articles}}', articles);
-    } else if (arg === "header.html") {
-        textTemplate = textTemplate.replace('{{header}}', header);
-    } else {
-        textTemplate = textTemplate.replace('{{footer}}', footer);
-    }
+function collector2 (arg, text) {
+    templateTags.forEach(e => {
+        if (e === `${arg}`) {
+            textTemplate = textTemplate.replace(`{{${e}}}`, text);
+        }
+    });
     fs.writeFile("06-build-page/project-dist/index.html", textTemplate, () => {});
 }

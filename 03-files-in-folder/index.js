@@ -9,16 +9,16 @@ fs.readdir('03-files-in-folder/secret-folder', (err, data) => {
     let name = '';
     let extname = '';
     data.forEach((element, i) => {
-        if (!fs.lstatSync(`03-files-in-folder/secret-folder/${element}`).isDirectory()) {
-            fs.stat('03-files-in-folder/secret-folder/'+element, (err, dat) => {
-                size = dat.size;
-                name = path.basename(element).split('.').slice(0, -1).join('.');
-                extname = path.extname(element).slice(1);
-                logger(name, extname, size);
-            });
-        } else {
-            return;
-        }
+        fs.stat(`03-files-in-folder/secret-folder/${element}`, (err, el) => {
+            if (!el.isDirectory()) {
+                fs.stat('03-files-in-folder/secret-folder/'+element, (err, dat) => {
+                    size = dat.size;
+                    name = path.basename(element).split('.').slice(0, -1).join('.');
+                    extname = path.extname(element).slice(1);
+                    logger(name, extname, size);
+                });
+            }
+        })
     });
 });
 
