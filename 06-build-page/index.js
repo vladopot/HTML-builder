@@ -87,6 +87,7 @@ function collector () {
             fs.readFile(`06-build-page/components/${e}`, "utf8", (err, t) => {
                 collector2(path.basename(e).split('.').slice(0, -1).join('.'), t);
             })
+            
         });
         
     });
@@ -98,5 +99,7 @@ function collector2 (arg, text) {
             textTemplate = textTemplate.replace(`{{${e}}}`, text);
         }
     });
-    fs.writeFile("06-build-page/project-dist/index.html", textTemplate, () => {});
+    fs.writeFile("06-build-page/project-dist/index.html", '', () => {
+        fs.writeFile("06-build-page/project-dist/index.html", textTemplate, () => {});
+    });
 }
