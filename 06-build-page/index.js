@@ -1,5 +1,6 @@
 const fs = require("fs");
 const path = require("path");
+const rimraf = require('rimraf');
 let textTemplate = ``;
 let articles = ``;
 let footer = ``;
@@ -13,33 +14,18 @@ start();
 function start () {
     fs.stat(`${project_dist}`, (err) => {
         if (!err) {
-            deleteFiles(project_dist);
-            creator();
+            deleter(project_dist);
         } else {
             creator();
-            console.log('Нет');
+            str();
         }
     })
 }
 
-function deleteFiles (dir) {
-    /*if (!fs.lstatSync(`${dir}`).isDirectory()) {
-        fs.unlink(`${dir}`, () => {});
-    } else {
-        fs.readdir(`${dir}`, (err, data) => {
-            data.forEach(element => {
-                deleteFiles(`${dir}/${element}`);
-            });
-        });
-    }*/
-    fs.readdir(dir, (err, files) => {
-        files.forEach(e => {
-            fs.statSync(`${dir}/${e}`, (error, stats) => {
-                if (stats.isFile()) {
-                    console.log("Дир");
-                }
-            });
-        }); 
+function deleter(dir) {
+    rimraf(dir, () => {
+        creator();
+        str()
     });
 }
 
@@ -64,34 +50,36 @@ function copyingFile (dirStart, dirEnd) {
         });
     });
 }
-
-fs.stat("06-build-page/project-dist/style.css", (err, data) => {
-    if (!err) {
-        fs.unlink("06-build-page/project-dist/style.css", () => {
-            fs.writeFile("06-build-page/project-dist/style.css", "", () => {});
-        });
-    } else {
-        fs.writeFile("06-build-page/project-dist/style.css", "", () => {});
-    }
-});
-
-fs.readdir("06-build-page/styles", (err, file) => {
-    file.forEach( (e) => {
-        if (path.extname(e) !== ".css") {
-            return;
-        } else {
-            fs.readFile(`06-build-page/styles/${e}`, "utf8", (err, data) => {
-                fs.appendFile("06-build-page/project-dist/style.css", `${data}\n\n`, () => {});
+function str() {
+    fs.stat("06-build-page/project-dist/style.css", (err, data) => {
+        if (!err) {
+            fs.unlink("06-build-page/project-dist/style.css", () => {
+                fs.writeFile("06-build-page/project-dist/style.css", "", () => {});
             });
+        } else {
+            fs.writeFile("06-build-page/project-dist/style.css", "", () => {});
         }
     });
-});
+    
+    fs.readdir("06-build-page/styles", (err, file) => {
+        file.forEach( (e) => {
+            if (path.extname(e) !== ".css") {
+                return;
+            } else {
+                fs.readFile(`06-build-page/styles/${e}`, "utf8", (err, data) => {
+                    fs.appendFile("06-build-page/project-dist/style.css", `${data}\n\n`, () => {});
+                });
+            }
+        });
+    });
+    
+    fs.readFile("06-build-page/template.html", "utf8", (err, text) => {
+        textTemplate = text;
+        templateTags = (text.match(/(?<=\{{2}).+?(?=\}{2})/g));
+        collector();
+    });
+}
 
-fs.readFile("06-build-page/template.html", "utf8", (err, text) => {
-    textTemplate = text;
-    templateTags = (text.match(/(?<=\{{2}).+?(?=\}{2})/g));
-    collector();
-});
 
 function collector () {
     fs.readdir("06-build-page/components", (err, data) => {
